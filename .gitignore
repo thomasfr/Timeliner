@@ -1,0 +1,8 @@
+node_modules*
+.idea/
+.DS_Store
+config/*
+!config/*.tpl
+!config/express.js
+!config/socketio.js
+public/css/style.css

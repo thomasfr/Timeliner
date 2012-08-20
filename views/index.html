@@ -1,0 +1,84 @@
+<!DOCTYPE HTML>
+<meta charset="UTF-8">
+<title>Timeliner</title>
+<meta http-equiv="X-UA-Compatible" content="chrome=1">
+<script src="/socket.io/socket.io.js"></script>
+<link rel="stylesheet" href="/css/bootstrap.min.css" />
+<!--<link rel="stylesheet" href="/css/animate.css" />-->
+<!--<link rel="stylesheet" href="/css/hl/github.css" />-->
+<link rel="stylesheet" href="/css/style.css" />
+<script data-main="/js/main" src="/js/libs/require/require-jquery.js"></script>
+<script data-main="/js/main" src="/js/libs/bootstrap.js"></script>
+<div id="topbar" class="navbar navbar-fixed-top">
+    <div class="navbar-inner">
+        <div class="container-fluid">
+            <a href="#" class="brand">Timeliner</a>
+
+            <ul class="nav">
+                <li class="divider-vertical"></li>
+                <li class="">
+                    <a href="#">Home</a>
+                </li>
+                <li class="divider-vertical"></li>
+            </ul>
+
+            <form class="navbar-search pull-left" action="">
+                <input type="text" class="search-query span2" placeholder="Search">
+            </form>
+
+            <ul id="topmenu" class="nav pull-right">
+                <li class="divider-vertical"></li>
+                <li class="dropdown">
+                    <a data-toggle="dropdown" class="dropdown-toggle" href="#">Profile <b class="caret"></b></a>
+                    <ul class="dropdown-menu">
+                        <li><a href="#">Action</a></li>
+                        <li><a href="#">Another action</a></li>
+                        <li><a href="#">Something else here</a></li>
+                        <li class="divider"></li>
+                        <li><a href="#">Separated link</a></li>
+                    </ul>
+                </li>
+            </ul>
+            <button id="unread-pings" class="btn danger pull-right disabled" style="display: none;"><span>0</span>&nbsp;Unread
+            </button>
+        </div>
+    </div>
+</div>
+
+<div id="container" class="container-fluid" style="display:none;">
+    <aside class="sidebar">
+        <div>
+            <div class="profile">
+                <div class="avatar"><img src="/img/avatar-blank-128.jpg"></div>
+            </div>
+            <nav class="unstyled">
+                <ul>
+                    <li class="active"><a href="#public">Public Timline</a></li>
+                </ul>
+            </nav>
+            <div id="users">
+                <h4>Online Users</h4>
+
+                <div class="value"></div>
+            </div>
+        </div>
+    </aside>
+    <div class="content">
+        <div class="container">
+            <form>
+                <textarea placeholder="What are you doing..." id="newping"></textarea>
+                <button class="btn primary ping" id="newpingbutton">Ping!</button>
+            </form>
+        </div>
+        <section id="pings"></section>
+        <section id="profile" style="display: hidden;"></section>
+    </div>
+</div>
+
+<div id="login" class="container-fluid" style="display: none;">
+    <form class="well" method="post" action="#login">
+        <input class="input-small" type="text" placeholder="Username" name="username">
+        <input class="input-small" type="password" placeholder="Password" name="password">
+        <button class="btn" type="submit">Sign in</button>
+    </form>
+</div>

@@ -1,0 +1,33 @@
+{
+    "name":"Timeliner",
+    "version":"0.3.0",
+    "scripts":{
+        "start":"bin/timeliner start",
+        "stop":"bin/timeliner stop",
+        "log":"bin/timeliner log timeliner",
+        "redis-log":"bin/timeliner log redis",
+        "redis-cli":"bin/timeliner redis-cli"
+    },
+    "main":"index.js",
+    "dependencies":{
+        "express":"latest",
+        "socket.io":"latest",
+        "hiredis":"latest",
+        "redis":"latest",
+        "connect":"latest",
+        "connect-redis":"latest",
+        "async":"latest",
+        "validator":"latest",
+        "less":"latest",
+        "platform":"latest",
+        "backbone":"latest",
+        "underscore":"latest",
+        "hogan.js":"latest",
+        "discount":"latest",
+        "moment":"latest",
+        "node-uuid":"latest",
+        "ldapjs":"latest",
+        "node-xmpp":"latest",
+        "node-stringprep":"latest"
+    }
+}

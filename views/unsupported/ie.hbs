@@ -1,0 +1,45 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Timeliner</title>
+    <link rel="stylesheet" href="/styles/boilerplate.css" />
+    <link rel="stylesheet" href="/styles/bootstrap.min.css" />
+    <link rel="stylesheet" href="/styles/style.css" />
+    <style>
+        .chromeFrameInstallDefaultStyle {
+            margin:0;
+            padding:0;
+            left:0;
+            top:0;
+            width: 100%; /* default is 800px */
+            height:100%;
+        }
+        #cf {
+            height:100%;
+            width:100%;
+            padding: 0;
+            margin: 0;
+            border: 0;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+<!--[if IE]>
+<div id="cf">
+
+</div>
+<script src="//ajax.googleapis.com/ajax/libs/chrome-frame/1.0.2/CFInstall.min.js"></script>
+<script>
+    window.attachEvent("onload", function () {
+        CFInstall.check({
+            mode:"inline",
+            destination:document.location.href,
+            node:"cf"
+        });
+    });
+</script>
+<![endif]-->
+</body>
+</html>

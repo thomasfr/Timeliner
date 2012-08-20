@@ -1,0 +1,141 @@
+#!/bin/bash
+TIMELINER_HOME="$(cd $(dirname $(dirname $0));pwd)";
+cd $TIMELINER_HOME;
+
+TIMELINER_BIN="${TIMELINER_HOME}/bin";
+TIMELINER_CONF="${TIMELINER_HOME}/conf";
+TIMELINER_LOG="${TIMELINER_HOME}/log";
+TIMELINER_TMP="${TIMELINER_HOME}/tmp";
+TIMELINER_LIB="${TIMELINER_HOME}/lib";
+TIMELINER_LOG_FILE="${TIMELINER_LOG}/timeliner.log";
+TIMELINER_PID_FILE="${TIMELINER_TMP}/timeliner.pid";
+TIMELINER_REDIS_SOCK_FILE="${TIMELINER_TMP}/redis.sock";
+TIMELINER_REDIS_LOG_FILE="${TIMELINER_LOG}/redis.log";
+TIMELINER_REDIS_PID_FILE="${TIMELINER_TMP}/redis.pid";
+TIMELINER_REDIS_CONF_FILE="${TIMELINER_CONF}/redis.conf";
+TIMELINER_NODE_VERSION="0.6";
+TIMELINER_REDIS_VERSION="2.6";
+
+NODE_ENV="development"
+
+## Allow to ship own set of binaries with Timeliner.
+## If there is no arch dir within the bin dir
+## there are no symlinks created
+if [[ -d "$TIMELINER_BIN" && -r "$TIMELINER_BIN" ]]; then
+	CPUARCH="$(uname -m)";
+	if [ ${CPUARCH} != "x86_64" ]; then
+		echo "Not supported CPU architecture";
+		TIMELINER_ENVCHECK=false;
+	fi
+  HOSTPLATFORM="$(uname -s)";
+  if [[ ${HOSTPLATFORM} != "Linux" && ${HOSTPLATFORM} != "Darwin" ]]; then
+		echo "Not supported host plattform";
+		TIMELINER_ENVCHECK=false;
+  fi
+	export PATH="${TIMELINER_BIN}:${PATH}";
+	cd $TIMELINER_BIN;
+	BINDIR_NAME="${HOSTPLATFORM}-${CPUARCH}"
+	if [[ -d "${TIMELINER_BIN}/${BINDIR_NAME}"  && -r "${TIMELINER_BIN}/${BINDIR_NAME}" ]];then
+		ln -sf ${BINDIR_NAME}/* ./;
+	fi
+fi;
+
+TIMELINER_FOUND_NODE_VERSION="$(/usr/bin/env node -v)";
+TIMELINER_FOUND_REDIS_VERSION="$(/usr/bin/env redis-server -v)";
+TIMELINER_ENVCHECK=true;
+
+## Doing some environment version checks.
+#if [ $(echo $TIMELINER_FOUND_NODE_VERSION | grep -oc $TIMELINER_NODE_VERSION) != 1 ]; then
+#	echo "Not supported node version. Version has to match '$TIMELINER_NODE_VERSION', but found '$TIMELINER_FOUND_NODE_VERSION'";
+#	TIMELINER_ENVCHECK=false;
+#fi;
+
+#if [ $(echo $TIMELINER_FOUND_REDIS_VERSION | grep -oc $TIMELINER_REDIS_VERSION) != 1 ]; then
+#	echo "Not supported redis-server version. Version has to match '$TIMELINER_REDIS_VERSION', but found '$TIMELINER_FOUND_REDIS_VERSION'";
+#	TIMELINER_ENVCHECK=false;
+#fi
+
+if [[ $# -le 0 || ($1 != "start" && $1 != "stop" && $1 != "redis-cli" && $1 != "log" && $1 != "clean" ) ]]; then
+	echo 
+	echo "Wrong parameters"
+	echo "Usage: '$0 start|stop|clean|log|redis-cli'"
+	echo
+	exit 1;
+fi
+
+
+if [ "x${TIMELINER_ENVCHECK}" == "xfalse" ]; then
+	echo
+	echo "Can not start Timeliner due to failed environment checks.";
+	echo "Check previous error messages.";
+	echo
+	exit 1;
+fi
+
+cd $TIMELINER_HOME;
+
+## redis-cli
+if [ "redis-cli" == "$1" ]; then
+	env -i "PATH=$PATH" "HOME=$HOME" "USER=$USER" redis-cli -s "${TIMELINER_REDIS_SOCK_FILE}";
+
+
+## log
+elif [ "log" == "$1" ]; then
+	if [ -z "$2" ]; then
+		LOG="timeliner";
+	else 
+		LOG="$2";
+	fi
+	env -i tail -f -n100 "${TIMELINER_LOG}/${LOG}.log";
+
+
+## clean
+elif [ "clean" == "$1" ]; then
+	rm -f "${TIMELINER_PID_FILE}";
+	rm -f "${TIMELINER_REDIS_PID_FILE}";
+
+
+## start
+elif [[ "start" == "$1" ]]; then
+	if [[ -f $TIMELINER_PID_FILE || -f $TIMELINER_REDIS_PID_FILE ]] ; then
+		echo "TIMELINER already running? Remove '$TIMELINER_PID_FILE' and '$TIMELINER_REDIS_PID_FILE' otherwise and try again. Exiting."
+		exit 1;
+	fi
+	echo "Supported node version found: '$TIMELINER_FOUND_NODE_VERSION'";
+	echo "Supported redis-server version found: '$TIMELINER_FOUND_REDIS_VERSION'";
+	echo
+	echo -n "Starting redis-server";
+	nohup env -i "PATH=$PATH" "HOME=$HOME" "USER=$USER" redis-server "${TIMELINER_REDIS_CONF_FILE}" &> "${TIMELINER_REDIS_LOG_FILE}" &
+	echo $! >> "${TIMELINER_REDIS_PID_FILE}";
+	## redis is usually very fast at startup but just to make sure we add an timeout of 3 seconds before we start TIMELINER
+	echo -n ".";
+	sleep 1;
+	echo -n "..";
+	echo
+	echo "Starting TIMELINER";
+	nohup env -i "NODE_ENV=$NODE_ENV" "PATH=$PATH" "TIMELINER_HOME=$TIMELINER_HOME" "HOME=$HOME" "USER=$USER" node $TIMELINER_HOME/index.js &> "${TIMELINER_LOG_FILE}" &
+	echo $! >> "${TIMELINER_PID_FILE}";
+
+
+## stop
+elif [[ "stop" == "$1" ]]; then
+	if [[ -f $TIMELINER_PID_FILE ]]; then
+		TIMELINER_PID="$(cat $TIMELINER_PID_FILE)";
+		echo "Killing TIMELINER ($TIMELINER_PID)";
+		kill $TIMELINER_PID;
+		rm  -f "${TIMELINER_PID_FILE}";
+	else 
+		echo "TIMELINER not running";
+	fi
+	if [[ -f $TIMELINER_REDIS_PID_FILE ]]; then
+		TIMELINER_REDIS_PID="$(cat $TIMELINER_REDIS_PID_FILE)";
+		echo "Killing redis-server ($TIMELINER_REDIS_PID)";
+		kill $TIMELINER_REDIS_PID;
+		rm -f "${TIMELINER_REDIS_PID_FILE}";
+	else 
+		echo "redis-server not running";
+	fi
+	exit 0;
+fi
+
+exit 0;
